@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="專業啦啦隊與模特兒攝影藝廊 — 用鏡頭記錄每個耀眼的瞬間">
+  <title>Golden Gallery | 攝影藝廊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo">GALLERY</a>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜尋照片..." autocomplete="off">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">用鏡頭記錄<br>每個耀眼的瞬間</h1>
+      <p class="hero-subtitle">啦啦隊 · 模特兒 · 舞台 · 寫真</p>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-category="all">全部</button>
+    <button class="tab" data-category="competition">2024 全國賽</button>
+    <button class="tab" data-category="campus">校園寫真</button>
+    <button class="tab" data-category="commercial">商業拍攝</button>
+    <button class="tab" data-category="behind">幕後花絮</button>
+  </nav>
+
+  <!-- Gallery -->
+  <section class="gallery-section">
+    <div class="gallery-info">
+      <span class="gallery-count" id="photoCount">0</span> 張照片
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+    <div class="gallery-loader" id="galleryLoader">
+      <div class="loader-spinner"></div>
+      <span>載入中...</span>
+    </div>
+  </section>
+
+  <!-- Lightbox -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose">&times;</button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <div class="lightbox-content">
+      <img class="lightbox-image" id="lightboxImage" src="" alt="">
+      <div class="lightbox-info">
+        <span class="lightbox-title" id="lightboxTitle"></span>
+        <span class="lightbox-tag" id="lightboxTag"></span>
+        <span class="lightbox-counter" id="lightboxCounter"></span>
+      </div>
+    </div>
+    <div class="lightbox-thumbs" id="lightboxThumbs"></div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-social">
+        <a href="#" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor"/></svg>
+          Instagram
+        </a>
+        <a href="#" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          Facebook
+        </a>
+      </div>
+      <p class="footer-copy">&copy; 2025 Golden Gallery. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/photos.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
