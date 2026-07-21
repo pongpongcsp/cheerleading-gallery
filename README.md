@@ -1,6 +1,6 @@
-# Golden Gallery — 攝影藝廊
+# Cheerleading Gallery — 啦啦隊攝影藝廊
 
-黑金主題的啦啦隊與模特兒攝影作品集網站，使用純 HTML + CSS + JavaScript 打造，可直接部署至 GitHub Pages。
+黑金主題的啦啦隊與模特兒攝影作品集網站，使用純 HTML + CSS + JavaScript 打造，部署於 GitHub Pages。
 
 ## 功能特色
 
@@ -38,12 +38,9 @@
 | commercial    | 商業拍攝 |
 | behind        | 幕後花絮 |
 
-## 部署到 GitHub Pages
+## 線上網址
 
-1. 建立 GitHub 倉儲
-2. 將此資料夾內容 push 到 `main` 分支
-3. 到倉儲 Settings → Pages → 選擇 `main` 分支，根目錄
-4. 完成，網址為 `https://<帳號>.github.io/<倉儲名稱>/`
+https://pongpongcsp.github.io/cheerleading-gallery/
 
 ## 顏色系統
 
@@ -56,6 +53,4 @@
 
 ## 授權
 
-© 2025 Golden Gallery
-"# cheerleading" 
-"# cheerleading" 
+© 2025 Cheerleading Gallery
