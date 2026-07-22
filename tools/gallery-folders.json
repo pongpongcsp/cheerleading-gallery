@@ -1,9 +1,9 @@
 [
   {
-    "folder": "EXAMPLE_EVENT_FOLDER",
+    "folder": "20250928_桃園_樂天女孩",
     "category": "competition",
-    "categoryLabel": "2024全國賽",
-    "titlePrefix": "全國賽",
-    "tags": ["啦啦隊", "比賽"]
+    "categoryLabel": "桃園 樂天女孩",
+    "titlePrefix": "桃園樂天女孩",
+    "tags": ["啦啦隊", "樂天女孩", "桃園", "比賽"]
   }
 ]
