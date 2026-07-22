@@ -2,3 +2,27 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Local secrets & upload state
+.env
+upload-log.json
+upload-output.log
+
+# Local photo processing outputs (binaries stay off git)
+images/
+compressed/
+culling/
+culling-test/
+keepers/
+rejects/
+*.jpg
+*.jpeg
+*.png
+*.webp
+!docs/**/*.png
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

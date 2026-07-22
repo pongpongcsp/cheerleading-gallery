@@ -1,0 +1,14 @@
+{
+  "name": "cheerleading-gallery",
+  "private": true,
+  "description": "Black-gold cheerleading photo gallery for GitHub Pages + Cloudinary",
+  "scripts": {
+    "compress": "python tools/compress-photos.py",
+    "cull": "python tools/cull-photos.py",
+    "upload": "node tools/upload-to-cloudinary.js",
+    "generate": "node tools/generate-photos.js"
+  },
+  "dependencies": {
+    "cloudinary": "^2.10.0"
+  }
+}

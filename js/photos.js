@@ -1,6 +1,6 @@
 const allPhotos = [
   // ── 2024 全國賽 ──
-  { id: 1,  title: '全國賽 — 開場演出',   category: 'competition', categoryLabel: '2024全國賽', url: 'https://picsum.photos/seed/cheer1/800/1000', width: 800, height: 1000, tags: ['啦啦隊', '比賽'] },
+  { id: 1,  title: '全國賽 — 開場演出',   category: 'competition', categoryLabel: '2024全國賽', url: 'https://picsum.photos/seed/cheer1/800/1000', thumbUrl: 'https://picsum.photos/seed/cheer1/400/500', width: 800, height: 1000, tags: ['啦啦隊', '比賽'] },
   { id: 2,  title: '全國賽 — 團體技巧',   category: 'competition', categoryLabel: '2024全國賽', url: 'https://picsum.photos/seed/cheer2/800/1200', width: 800, height: 1200, tags: ['啦啦隊', '比賽'] },
   { id: 3,  title: '全國賽 — 金字塔組合', category: 'competition', categoryLabel: '2024全國賽', url: 'https://picsum.photos/seed/cheer3/800/900',  width: 800, height: 900,  tags: ['啦啦隊', '比賽'] },
   { id: 4,  title: '全國賽 — 頒獎時刻',   category: 'competition', categoryLabel: '2024全國賽', url: 'https://picsum.photos/seed/cheer4/800/1100', width: 800, height: 1100, tags: ['啦啦隊', '頒獎'] },
