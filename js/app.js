@@ -57,8 +57,9 @@ function renderBatch(start, count) {
     const item = document.createElement('div');
     item.className = 'grid-item';
     item.dataset.index = i;
+    const thumb = photo.thumbUrl || photo.url;
     item.innerHTML = `
-      <img src="${photo.url}" alt="${photo.title}" loading="lazy">
+      <img src="${thumb}" alt="${photo.title}" loading="lazy" width="${photo.width || ''}" height="${photo.height || ''}">
       <div class="card-overlay">
         <div class="card-title">${photo.title}</div>
         <span class="card-tag">${photo.categoryLabel}</span>
@@ -188,16 +189,29 @@ function nextPhoto() {
 
 function renderThumbnails() {
   lightboxThumbs.innerHTML = '';
-  state.lightboxPhotos.forEach((photo, i) => {
+  // Cap thumb strip for large galleries (friends on mobile).
+  const maxThumbs = 80;
+  const total = state.lightboxPhotos.length;
+  let start = 0;
+  let end = total;
+  if (total > maxThumbs) {
+    start = Math.max(0, state.currentLightboxIndex - Math.floor(maxThumbs / 2));
+    end = Math.min(total, start + maxThumbs);
+    start = Math.max(0, end - maxThumbs);
+  }
+
+  for (let i = start; i < end; i++) {
+    const photo = state.lightboxPhotos[i];
     const thumb = document.createElement('div');
     thumb.className = 'lightbox-thumb' + (i === state.currentLightboxIndex ? ' active' : '');
-    thumb.innerHTML = `<img src="${photo.url}" alt="">`;
+    const src = photo.thumbUrl || photo.url;
+    thumb.innerHTML = `<img src="${src}" alt="" loading="lazy">`;
     thumb.addEventListener('click', () => {
       state.currentLightboxIndex = i;
       updateLightbox();
     });
     lightboxThumbs.appendChild(thumb);
-  });
+  }
 }
 
 function scrollThumbIntoView() {
