@@ -17,7 +17,7 @@ Publish large photo volumes to **cheerleading-gallery** without putting binary i
 
 ## Full multi-folder pipeline (Desktop)
 
-Configured events live in `tools/gallery-folders.json` (8 confirmed events).
+Configured events live in `tools/gallery-folders.json` (9 confirmed events).
 
 ```bat
 copy .env.example .env
@@ -55,7 +55,7 @@ publish-event.bat "D:\Photo\20250928_桃園_樂天女孩" "20250928_桃園_樂�
 
 ## Budget
 
-Default **50 keepers × 8 events ≈ 400** Cloudinary uploads — not full RAW dumps.
+Default **50 keepers × 9 events ≈ 450** Cloudinary uploads — not full RAW dumps.
 
 ## Credentials
 

@@ -5,7 +5,7 @@
 ## 功能特色
 
 - Masonry 瀑布流照片展示
-- 多活動 Tab 切換（8 個已確認場次 + 全部）
+- 多活動 Tab 切換（9 個已確認場次 + 全部）
 - 即時搜尋過濾
 - 全螢幕燈箱瀏覽（鍵盤左右鍵導航）
 - 響應式設計（手機 / 平板 / 桌機）
@@ -39,7 +39,7 @@ copy .env.example .env
 REM 填入 Cloudinary 憑證
 ```
 
-### 2. 一次處理全部 8 場（推薦）
+### 2. 一次處理全部 9 場（推薦）
 
 活動清單在 [`tools/gallery-folders.json`](tools/gallery-folders.json)。
 
@@ -61,7 +61,7 @@ publish-all.bat --only 20250928_桃園_樂天女孩
 publish-all.bat --photo-root "D:\Photo"
 ```
 
-預算：8 場 × ~50 ≈ **400** 張上傳，不是整包 RAW。
+預算：9 場 × ~50 ≈ **450** 張上傳，不是整包 RAW。
 
 ### 3. 單場
 
@@ -91,6 +91,7 @@ Cursor skills：`photo-culling`、`compress-photo`、`gallery-publish`。
 | 20250928_桃園_樂天女孩 | 桃園 樂天女孩 |
 | 20260328_台北大巨蛋_樂天女孩 | 大巨蛋 樂天女孩 03/28 |
 | 20260329_台北大巨蛋_樂天女孩 | 大巨蛋 樂天女孩 03/29 |
+| 20260606_台中洲際_PassionSister | 台中 PassionSister |
 | 20260607_台北大巨蛋_UniGirls | 大巨蛋 UniGirls |
 | 20260607_台北南港_金佳垠 | 南港 金佳垠 |
 
