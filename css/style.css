@@ -176,15 +176,19 @@ a {
 /* ── Tabs ── */
 .tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 24px 24px 0;
   max-width: 1400px;
   margin: 0 auto;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .tab {
+  flex: 0 0 auto;
   padding: 10px 24px;
   background: transparent;
   border: 1px solid var(--border-color);
@@ -195,6 +199,7 @@ a {
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition);
+  white-space: nowrap;
 }
 
 .tab:hover {

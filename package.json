@@ -6,7 +6,8 @@
     "compress": "python tools/compress-photos.py",
     "cull": "python tools/cull-photos.py",
     "upload": "node tools/upload-to-cloudinary.js",
-    "generate": "node tools/generate-photos.js"
+    "generate": "node tools/generate-photos.js",
+    "publish-all": "node tools/publish-events.js"
   },
   "dependencies": {
     "cloudinary": "^2.10.0"
