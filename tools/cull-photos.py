@@ -110,7 +110,12 @@ def group_similar(rows: list[dict], threshold: int) -> list[list[dict]]:
     return groups
 
 
-def label_rows(rows: list[dict], similar_threshold: int, review_percent: float) -> list[dict]:
+def label_rows(
+    rows: list[dict],
+    similar_threshold: int,
+    review_percent: float,
+    max_keepers: int = 0,
+) -> list[dict]:
     if not rows:
         return []
 
@@ -139,6 +144,7 @@ def label_rows(rows: list[dict], similar_threshold: int, review_percent: float) 
                 item["suggestion"] = "reject"
                 item["reason"] = "likely blurry vs batch"
             elif idx == 0:
+                # Best in group is a candidate; weaker duplicates are reject
                 item["suggestion"] = "keeper"
                 item["reason"] = "best in similar group" if len(group) > 1 else "strong technical score"
             elif best["score"] - row["score"] >= 6 or row["score"] < best["score"] * 0.85:
@@ -149,8 +155,9 @@ def label_rows(rows: list[dict], similar_threshold: int, review_percent: float) 
                 item["reason"] = "similar alternative"
             labeled.append(item)
 
+    # Optional soft demotion when no hard max-keepers cap
     keepers = [r for r in labeled if r["suggestion"] == "keeper"]
-    if keepers and review_percent > 0 and len(keepers) > 1:
+    if not max_keepers and keepers and review_percent > 0 and len(keepers) > 1:
         ranked_scores = sorted((r["score"] for r in keepers), reverse=True)
         keep_n = max(1, int(round(len(ranked_scores) * (1 - review_percent))))
         keep_cutoff = ranked_scores[keep_n - 1]
@@ -158,6 +165,19 @@ def label_rows(rows: list[dict], similar_threshold: int, review_percent: float) 
             if row["suggestion"] == "keeper" and row["group_size"] == 1 and row["score"] < keep_cutoff:
                 row["suggestion"] = "review"
                 row["reason"] = "borderline solo shot"
+
+    # Hard top-N budget for Cloudinary / friend sharing
+    if max_keepers and max_keepers > 0:
+        ranked_keepers = sorted(
+            [r for r in labeled if r["suggestion"] == "keeper"],
+            key=lambda r: r["score"],
+            reverse=True,
+        )
+        keep_set = {id(r) for r in ranked_keepers[:max_keepers]}
+        for row in labeled:
+            if row["suggestion"] == "keeper" and id(row) not in keep_set:
+                row["suggestion"] = "review"
+                row["reason"] = f"outside top {max_keepers} keepers"
 
     labeled.sort(key=lambda r: (-{"keeper": 2, "review": 1, "reject": 0}[r["suggestion"]], -r["score"]))
     return labeled
@@ -276,6 +296,12 @@ def main() -> int:
     parser.add_argument("output")
     parser.add_argument("--similar-threshold", type=int, default=8)
     parser.add_argument("--review-percent", type=float, default=0.30)
+    parser.add_argument(
+        "--max-keepers",
+        type=int,
+        default=50,
+        help="Hard cap of keeper photos after de-dupe (0 = no hard cap). Default: 50",
+    )
     parser.add_argument("--copy-keepers", action="store_true")
     parser.add_argument("--copy-rejects", action="store_true")
     parser.add_argument("--limit", type=int, default=0)
@@ -293,6 +319,8 @@ def main() -> int:
         return 1
 
     print(f"Scoring {len(files)} images from {source} ...")
+    if args.max_keepers:
+        print(f"Max keepers: {args.max_keepers}")
     rows = []
     for i, path in enumerate(files, 1):
         try:
@@ -302,7 +330,12 @@ def main() -> int:
         if i % 25 == 0 or i == len(files):
             print(f"  {i}/{len(files)}")
 
-    labeled = label_rows(rows, args.similar_threshold, args.review_percent)
+    labeled = label_rows(
+        rows,
+        args.similar_threshold,
+        args.review_percent,
+        max_keepers=args.max_keepers,
+    )
     output.mkdir(parents=True, exist_ok=True)
     thumbs = output / "thumbs"
 
