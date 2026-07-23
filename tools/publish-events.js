@@ -114,6 +114,12 @@ async function main() {
       console.error(`No gallery-folders.json entry for --only ${opts.only}`);
       process.exit(1);
     }
+  } else {
+    const skipped = entries.filter((e) => e.skip);
+    entries = entries.filter((e) => !e.skip);
+    for (const e of skipped) {
+      console.log(`SKIP (deferred): ${e.folder}${e.skipReason ? ` — ${e.skipReason}` : ""}`);
+    }
   }
 
   console.log(`Events: ${entries.length}`);

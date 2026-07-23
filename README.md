@@ -61,7 +61,7 @@ publish-all.bat --only 20250928_桃園_樂天女孩
 publish-all.bat --photo-root "D:\Photo"
 ```
 
-預算：9 場 × ~50 ≈ **450** 張上傳，不是整包 RAW。
+預算：目前先跑 **8 場** × ~50 ≈ **400** 張（`PassionSister` 已設 `skip: true`，之後再跑）。
 
 ### 3. 單場
 

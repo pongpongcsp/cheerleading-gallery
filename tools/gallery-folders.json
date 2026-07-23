@@ -53,7 +53,9 @@
     "category": "taichung-passion",
     "categoryLabel": "台中 PassionSister",
     "titlePrefix": "PassionSister",
-    "tags": ["啦啦隊", "PassionSister", "台中"]
+    "tags": ["啦啦隊", "PassionSister", "台中"],
+    "skip": true,
+    "skipReason": "Deferred — run later (large folder)"
   },
   {
     "folder": "20260607_台北大巨蛋_UniGirls",
