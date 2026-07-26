@@ -58,9 +58,10 @@ publish-all.bat
 ## Ranking rule
 
 1. Reject clearly blurry / weak shots.
-2. Within each similar group, keep only the best 1 as a candidate.
-3. Sort candidates by technical score descending.
-4. Label top `--max-keepers` as `keeper`; remaining usable shots as `review`.
+2. Within each similar group, keep only the best 1 as a candidate (weaker duplicates reject/review).
+3. **Accept 人物正面**: if OpenCV detects a frontal face and the shot is not blur-rejected, promote to `keeper` (reason `frontal face (人物正面)`).
+4. Sort keepers with frontal-face shots first, then by technical score descending.
+5. Label top `--max-keepers` as `keeper`; remaining usable shots as `review`.
 
 ## Output layout
 
@@ -75,4 +76,4 @@ OUTPUT_FOLDER/
 
 ## Caveat
 
-Scores cover sharpness / exposure / similarity only — not expression or storytelling. Always skim the HTML report before uploading.
+Scores cover sharpness / exposure / similarity plus frontal-face accept (人物正面). They still ignore expression and storytelling nuance. Always skim the HTML report before uploading.

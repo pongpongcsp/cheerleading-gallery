@@ -17,7 +17,62 @@ except ImportError:
     print("Pillow is required. Install with: pip install pillow", file=sys.stderr)
     sys.exit(1)
 
+try:
+    import cv2
+    import numpy as np
+except ImportError:
+    cv2 = None  # type: ignore[assignment]
+    np = None  # type: ignore[assignment]
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
+_FACE_CASCADE = None
+_FACE_CASCADE_WARNED = False
+
+
+def _get_face_cascade():
+    """Load OpenCV frontal-face cascade once; None if unavailable."""
+    global _FACE_CASCADE, _FACE_CASCADE_WARNED
+    if cv2 is None:
+        if not _FACE_CASCADE_WARNED:
+            print(
+                "Warning: opencv-python-headless not installed — "
+                "skipping 人物正面 (frontal face) criterion. "
+                "Install with: pip install opencv-python-headless",
+                file=sys.stderr,
+            )
+            _FACE_CASCADE_WARNED = True
+        return None
+    if _FACE_CASCADE is False:
+        return None
+    if _FACE_CASCADE is not None:
+        return _FACE_CASCADE
+    cascade_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
+    cascade = cv2.CascadeClassifier(str(cascade_path))
+    if cascade.empty():
+        print(
+            f"Warning: could not load face cascade at {cascade_path} — "
+            "skipping 人物正面 criterion.",
+            file=sys.stderr,
+        )
+        _FACE_CASCADE = False
+        return None
+    _FACE_CASCADE = cascade
+    return _FACE_CASCADE
+
+
+def count_frontal_faces(gray: Image.Image) -> int:
+    """Count frontal faces (人物正面) on a Pillow grayscale sample."""
+    cascade = _get_face_cascade()
+    if cascade is None or np is None:
+        return 0
+    arr = np.array(gray)
+    faces = cascade.detectMultiScale(
+        arr,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(40, 40),
+    )
+    return len(faces)
 
 
 def iter_images(source: Path, limit: int | None):
@@ -72,6 +127,7 @@ def score_image(path: Path) -> dict:
         clip_high = sum(hist[-5:]) / total
         clipping = clip_low + clip_high
         hash_val = dhash(sample)
+        frontal_faces = count_frontal_faces(gray)
 
     sharp_score = max(0.0, min(45.0, (sharpness ** 0.5) * 3.5))
     contrast_score = max(0.0, min(25.0, contrast))
@@ -89,6 +145,7 @@ def score_image(path: Path) -> dict:
         "clipping": round(clipping, 4),
         "score": round(score, 2),
         "dhash": hash_val,
+        "frontal_faces": frontal_faces,
     }
 
 
@@ -146,7 +203,12 @@ def label_rows(
             elif idx == 0:
                 # Best in group is a candidate; weaker duplicates are reject
                 item["suggestion"] = "keeper"
-                item["reason"] = "best in similar group" if len(group) > 1 else "strong technical score"
+                if row.get("frontal_faces", 0) >= 1:
+                    item["reason"] = "frontal face (人物正面)"
+                elif len(group) > 1:
+                    item["reason"] = "best in similar group"
+                else:
+                    item["reason"] = "strong technical score"
             elif best["score"] - row["score"] >= 6 or row["score"] < best["score"] * 0.85:
                 item["suggestion"] = "reject"
                 item["reason"] = "weaker duplicate or low score"
@@ -155,6 +217,14 @@ def label_rows(
                 item["reason"] = "similar alternative"
             labeled.append(item)
 
+    # Accept clear frontal person shots (人物正面) that were not blur-rejected
+    for row in labeled:
+        if row["suggestion"] == "reject":
+            continue
+        if row.get("frontal_faces", 0) >= 1 and row["suggestion"] != "keeper":
+            row["suggestion"] = "keeper"
+            row["reason"] = "frontal face (人物正面)"
+
     # Optional soft demotion when no hard max-keepers cap
     keepers = [r for r in labeled if r["suggestion"] == "keeper"]
     if not max_keepers and keepers and review_percent > 0 and len(keepers) > 1:
@@ -162,15 +232,21 @@ def label_rows(
         keep_n = max(1, int(round(len(ranked_scores) * (1 - review_percent))))
         keep_cutoff = ranked_scores[keep_n - 1]
         for row in labeled:
-            if row["suggestion"] == "keeper" and row["group_size"] == 1 and row["score"] < keep_cutoff:
+            if (
+                row["suggestion"] == "keeper"
+                and row["group_size"] == 1
+                and row.get("frontal_faces", 0) < 1
+                and row["score"] < keep_cutoff
+            ):
                 row["suggestion"] = "review"
                 row["reason"] = "borderline solo shot"
 
     # Hard top-N budget for Cloudinary / friend sharing
+    # Frontal-face keepers rank ahead of non-frontal, then by score
     if max_keepers and max_keepers > 0:
         ranked_keepers = sorted(
             [r for r in labeled if r["suggestion"] == "keeper"],
-            key=lambda r: r["score"],
+            key=lambda r: (1 if r.get("frontal_faces", 0) >= 1 else 0, r["score"]),
             reverse=True,
         )
         keep_set = {id(r) for r in ranked_keepers[:max_keepers]}
@@ -179,7 +255,13 @@ def label_rows(
                 row["suggestion"] = "review"
                 row["reason"] = f"outside top {max_keepers} keepers"
 
-    labeled.sort(key=lambda r: (-{"keeper": 2, "review": 1, "reject": 0}[r["suggestion"]], -r["score"]))
+    labeled.sort(
+        key=lambda r: (
+            -{"keeper": 2, "review": 1, "reject": 0}[r["suggestion"]],
+            -(1 if r.get("frontal_faces", 0) >= 1 else 0),
+            -r["score"],
+        )
+    )
     return labeled
 
 
@@ -189,7 +271,8 @@ def write_csv(path: Path, rows: list[dict], source: Path) -> None:
             f,
             fieldnames=[
                 "file", "suggestion", "reason", "score", "sharpness",
-                "brightness", "contrast", "clipping", "width", "height", "group_size",
+                "brightness", "contrast", "clipping", "frontal_faces",
+                "width", "height", "group_size",
             ],
         )
         writer.writeheader()
@@ -203,6 +286,7 @@ def write_csv(path: Path, rows: list[dict], source: Path) -> None:
                 "brightness": row["brightness"],
                 "contrast": row["contrast"],
                 "clipping": row["clipping"],
+                "frontal_faces": row.get("frontal_faces", 0),
                 "width": row["width"],
                 "height": row["height"],
                 "group_size": row["group_size"],
@@ -225,7 +309,7 @@ def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> 
               <div class="meta">
                 <strong>{html.escape(row['suggestion'].upper())}</strong>
                 <span>{html.escape(str(rel))}</span>
-                <span>score {row['score']} · sharp {row['sharpness']} · group {row['group_size']}</span>
+                <span>score {row['score']} · sharp {row['sharpness']} · faces {row.get('frontal_faces', 0)} · group {row['group_size']}</span>
                 <em>{html.escape(row['reason'])}</em>
               </div>
             </article>
@@ -256,6 +340,7 @@ def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> 
     <h1>Culling Report</h1>
     <p>Source: {html.escape(str(source))}</p>
     <p>keepers {counts['keeper']} · review {counts['review']} · reject {counts['reject']} · total {len(rows)}</p>
+    <p>Frontal face (人物正面) is an accept signal — those shots get keeper priority when sharp enough.</p>
     <p>Suggestions only — review keepers manually before publishing.</p>
   </header>
   <div class="grid">
