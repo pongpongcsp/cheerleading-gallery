@@ -72,5 +72,95 @@
     "categoryLabel": "南港 金佳垠",
     "titlePrefix": "金佳垠",
     "tags": ["啦啦隊", "金佳垠", "南港"]
+  },
+  {
+    "folder": "20260705_台北南港_TRE",
+    "localPath": "D:\\Photo\\20260705_台北南港_TRE",
+    "category": "nangang-tre-0705",
+    "categoryLabel": "南港 TRE 07/05",
+    "titlePrefix": "南港TRE",
+    "tags": ["啦啦隊", "TRE", "南港"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260731_新北新莊_FubonAngel",
+    "localPath": "D:\\Photo\\20260731_新北新莊_FubonAngel",
+    "category": "xinzhuang-fubon-0731",
+    "categoryLabel": "新莊 Fubon Angels 07/31",
+    "titlePrefix": "Fubon Angels",
+    "tags": ["啦啦隊", "Fubon Angels", "新莊"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260801_台北大巨蛋_DragonBeauties",
+    "localPath": "D:\\Photo\\20260801_台北大巨蛋_DragonBeauties",
+    "category": "dome-dragon-0801",
+    "categoryLabel": "大巨蛋 Dragon Beauties 08/01",
+    "titlePrefix": "Dragon Beauties",
+    "tags": ["啦啦隊", "Dragon Beauties", "大巨蛋"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260802_新北新莊_FubonAngel",
+    "localPath": "D:\\Photo\\20260802_新北新莊_FubonAngel",
+    "category": "xinzhuang-fubon-0802",
+    "categoryLabel": "新莊 Fubon Angels 08/02",
+    "titlePrefix": "Fubon Angels",
+    "tags": ["啦啦隊", "Fubon Angels", "新莊"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260815_台中新光三越_金泰希",
+    "localPath": "D:\\Photo\\20260815_台中新光三越_金泰希",
+    "category": "taichung-kim-taehee",
+    "categoryLabel": "台中 金泰希",
+    "titlePrefix": "金泰希",
+    "tags": ["啦啦隊", "金泰希", "台中"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260815_台中洲際_PassionSister",
+    "localPath": "D:\\Photo\\20260815_台中洲際_PassionSister",
+    "category": "taichung-passion-0815",
+    "categoryLabel": "台中 PassionSister 08/15",
+    "titlePrefix": "PassionSister",
+    "tags": ["啦啦隊", "PassionSister", "台中"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260816_台北大巨蛋_DragonBeauties",
+    "localPath": "D:\\Photo\\20260816_台北大巨蛋_DragonBeauties",
+    "category": "dome-dragon-0816",
+    "categoryLabel": "大巨蛋 Dragon Beauties 08/16",
+    "titlePrefix": "Dragon Beauties",
+    "tags": ["啦啦隊", "Dragon Beauties", "大巨蛋"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260823_電腦節_FubonAngel",
+    "localPath": "D:\\Photo\\20260823_電腦節_FubonAngel",
+    "category": "computex-fubon",
+    "categoryLabel": "電腦節 Fubon Angels",
+    "titlePrefix": "Fubon Angels",
+    "tags": ["啦啦隊", "Fubon Angels", "電腦節"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
+  },
+  {
+    "folder": "20260823_電腦節_小迪",
+    "localPath": "D:\\Photo\\20260823_電腦節_小迪",
+    "category": "computex-xiaodi",
+    "categoryLabel": "電腦節 小迪",
+    "titlePrefix": "小迪",
+    "tags": ["啦啦隊", "小迪", "電腦節"],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
   }
 ]

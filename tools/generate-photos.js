@@ -66,6 +66,10 @@ async function main() {
 
   for (const entry of folders) {
     const folder = entry.folder;
+    if (entry.skip) {
+      console.log(`Skipping "${folder}"${entry.skipReason ? ` — ${entry.skipReason}` : ""}`);
+      continue;
+    }
     process.stdout.write(`Fetching "${folder}"... `);
     try {
       const resources = await fetchAllFromFolder(cloudinary, folder);

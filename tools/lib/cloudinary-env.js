@@ -2,8 +2,11 @@ const fs = require("fs");
 const path = require("path");
 
 function loadDotEnv() {
-  const envPath = path.join(__dirname, "..", ".env");
-  if (!fs.existsSync(envPath)) return;
+  const envPath = [
+    path.join(__dirname, "..", "..", ".env"),
+    path.join(__dirname, "..", ".env"),
+  ].find((candidate) => fs.existsSync(candidate));
+  if (!envPath) return;
   const text = fs.readFileSync(envPath, "utf8");
   for (const line of text.split(/\r?\n/)) {
     const trimmed = line.trim();

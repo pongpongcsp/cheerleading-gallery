@@ -102,6 +102,15 @@ Cursor skills：`photo-culling`、`compress-photo`、`gallery-publish`。
 | 20260606_台中洲際_PassionSister | 台中 PassionSister |
 | 20260607_台北大巨蛋_UniGirls | 大巨蛋 UniGirls |
 | 20260607_台北南港_金佳垠 | 南港 金佳垠 |
+| 20260705_台北南港_TRE | 南港 TRE 07/05 |
+| 20260731_新北新莊_FubonAngel | 新莊 Fubon Angels 07/31 |
+| 20260801_台北大巨蛋_DragonBeauties | 大巨蛋 Dragon Beauties 08/01 |
+| 20260802_新北新莊_FubonAngel | 新莊 Fubon Angels 08/02 |
+| 20260815_台中新光三越_金泰希 | 台中 金泰希 |
+| 20260815_台中洲際_PassionSister | 台中 PassionSister 08/15 |
+| 20260816_台北大巨蛋_DragonBeauties | 大巨蛋 Dragon Beauties 08/16 |
+| 20260823_電腦節_FubonAngel | 電腦節 Fubon Angels |
+| 20260823_電腦節_小迪 | 電腦節 小迪 |
 
 ## 相關 repo
 
