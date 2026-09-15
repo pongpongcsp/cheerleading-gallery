@@ -5,7 +5,11 @@
     "category": "nangang-tre",
     "categoryLabel": "南港 TRE",
     "titlePrefix": "南港TRE",
-    "tags": ["啦啦隊", "TRE", "南港"]
+    "tags": [
+      "啦啦隊",
+      "TRE",
+      "南港"
+    ]
   },
   {
     "folder": "20250810_台北大巨蛋_樂天女孩",
@@ -13,7 +17,11 @@
     "category": "dome-rakuten-0810",
     "categoryLabel": "大巨蛋 樂天女孩 08/10",
     "titlePrefix": "大巨蛋樂天",
-    "tags": ["啦啦隊", "樂天女孩", "大巨蛋"]
+    "tags": [
+      "啦啦隊",
+      "樂天女孩",
+      "大巨蛋"
+    ]
   },
   {
     "folder": "20250824_電腦節_樂天女孩",
@@ -21,7 +29,11 @@
     "category": "computex-rakuten",
     "categoryLabel": "電腦節 樂天女孩",
     "titlePrefix": "電腦節樂天",
-    "tags": ["啦啦隊", "樂天女孩", "電腦節"]
+    "tags": [
+      "啦啦隊",
+      "樂天女孩",
+      "電腦節"
+    ]
   },
   {
     "folder": "20250928_桃園_樂天女孩",
@@ -29,7 +41,11 @@
     "category": "taoyuan-rakuten",
     "categoryLabel": "桃園 樂天女孩",
     "titlePrefix": "桃園樂天女孩",
-    "tags": ["啦啦隊", "樂天女孩", "桃園"]
+    "tags": [
+      "啦啦隊",
+      "樂天女孩",
+      "桃園"
+    ]
   },
   {
     "folder": "20260328_台北大巨蛋_樂天女孩",
@@ -37,7 +53,11 @@
     "category": "dome-rakuten-0328",
     "categoryLabel": "大巨蛋 樂天女孩 03/28",
     "titlePrefix": "大巨蛋樂天",
-    "tags": ["啦啦隊", "樂天女孩", "大巨蛋"]
+    "tags": [
+      "啦啦隊",
+      "樂天女孩",
+      "大巨蛋"
+    ]
   },
   {
     "folder": "20260329_台北大巨蛋_樂天女孩",
@@ -45,7 +65,11 @@
     "category": "dome-rakuten-0329",
     "categoryLabel": "大巨蛋 樂天女孩 03/29",
     "titlePrefix": "大巨蛋樂天",
-    "tags": ["啦啦隊", "樂天女孩", "大巨蛋"]
+    "tags": [
+      "啦啦隊",
+      "樂天女孩",
+      "大巨蛋"
+    ]
   },
   {
     "folder": "20260606_台中洲際_PassionSister",
@@ -53,7 +77,11 @@
     "category": "taichung-passion",
     "categoryLabel": "台中 PassionSister",
     "titlePrefix": "PassionSister",
-    "tags": ["啦啦隊", "PassionSister", "台中"],
+    "tags": [
+      "啦啦隊",
+      "PassionSister",
+      "台中"
+    ],
     "skip": true,
     "skipReason": "Deferred — run later (large folder)"
   },
@@ -63,7 +91,11 @@
     "category": "dome-unigirls",
     "categoryLabel": "大巨蛋 UniGirls",
     "titlePrefix": "UniGirls",
-    "tags": ["啦啦隊", "UniGirls", "大巨蛋"]
+    "tags": [
+      "啦啦隊",
+      "UniGirls",
+      "大巨蛋"
+    ]
   },
   {
     "folder": "20260607_台北南港_金佳垠",
@@ -71,7 +103,25 @@
     "category": "nangang-kim",
     "categoryLabel": "南港 金佳垠",
     "titlePrefix": "金佳垠",
-    "tags": ["啦啦隊", "金佳垠", "南港"]
+    "tags": [
+      "啦啦隊",
+      "金佳垠",
+      "南港"
+    ]
+  },
+  {
+    "folder": "20260704_台中洲際_PassionSister",
+    "localPath": "D:\\Photo\\20260704_台中洲際_PassionSister",
+    "category": "taichung-passion-0704",
+    "categoryLabel": "台中 PassionSister 07/04",
+    "titlePrefix": "PassionSister",
+    "tags": [
+      "啦啦隊",
+      "PassionSister",
+      "台中"
+    ],
+    "skip": true,
+    "skipReason": "Visual cull done — not uploaded yet"
   },
   {
     "folder": "20260705_台北南港_TRE",
@@ -79,7 +129,11 @@
     "category": "nangang-tre-0705",
     "categoryLabel": "南港 TRE 07/05",
     "titlePrefix": "南港TRE",
-    "tags": ["啦啦隊", "TRE", "南港"]
+    "tags": [
+      "啦啦隊",
+      "TRE",
+      "南港"
+    ]
   },
   {
     "folder": "20260731_新北新莊_FubonAngel",
@@ -87,7 +141,11 @@
     "category": "xinzhuang-fubon-0731",
     "categoryLabel": "新莊 Fubon Angels 07/31",
     "titlePrefix": "Fubon Angels",
-    "tags": ["啦啦隊", "Fubon Angels", "新莊"],
+    "tags": [
+      "啦啦隊",
+      "Fubon Angels",
+      "新莊"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -97,7 +155,11 @@
     "category": "dome-dragon-0801",
     "categoryLabel": "大巨蛋 Dragon Beauties 08/01",
     "titlePrefix": "Dragon Beauties",
-    "tags": ["啦啦隊", "Dragon Beauties", "大巨蛋"],
+    "tags": [
+      "啦啦隊",
+      "Dragon Beauties",
+      "大巨蛋"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -107,7 +169,11 @@
     "category": "xinzhuang-fubon-0802",
     "categoryLabel": "新莊 Fubon Angels 08/02",
     "titlePrefix": "Fubon Angels",
-    "tags": ["啦啦隊", "Fubon Angels", "新莊"],
+    "tags": [
+      "啦啦隊",
+      "Fubon Angels",
+      "新莊"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -117,7 +183,11 @@
     "category": "taichung-kim-taehee",
     "categoryLabel": "台中 金泰希",
     "titlePrefix": "金泰希",
-    "tags": ["啦啦隊", "金泰希", "台中"],
+    "tags": [
+      "啦啦隊",
+      "金泰希",
+      "台中"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -127,7 +197,11 @@
     "category": "taichung-passion-0815",
     "categoryLabel": "台中 PassionSister 08/15",
     "titlePrefix": "PassionSister",
-    "tags": ["啦啦隊", "PassionSister", "台中"],
+    "tags": [
+      "啦啦隊",
+      "PassionSister",
+      "台中"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -137,7 +211,11 @@
     "category": "dome-dragon-0816",
     "categoryLabel": "大巨蛋 Dragon Beauties 08/16",
     "titlePrefix": "Dragon Beauties",
-    "tags": ["啦啦隊", "Dragon Beauties", "大巨蛋"],
+    "tags": [
+      "啦啦隊",
+      "Dragon Beauties",
+      "大巨蛋"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -147,7 +225,11 @@
     "category": "computex-fubon",
     "categoryLabel": "電腦節 Fubon Angels",
     "titlePrefix": "Fubon Angels",
-    "tags": ["啦啦隊", "Fubon Angels", "電腦節"],
+    "tags": [
+      "啦啦隊",
+      "Fubon Angels",
+      "電腦節"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   },
@@ -157,7 +239,11 @@
     "category": "computex-xiaodi",
     "categoryLabel": "電腦節 小迪",
     "titlePrefix": "小迪",
-    "tags": ["啦啦隊", "小迪", "電腦節"],
+    "tags": [
+      "啦啦隊",
+      "小迪",
+      "電腦節"
+    ],
     "skip": true,
     "skipReason": "Visual cull done — not uploaded yet"
   }
