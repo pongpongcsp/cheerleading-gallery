@@ -79,9 +79,7 @@
     "category": "nangang-tre-0705",
     "categoryLabel": "南港 TRE 07/05",
     "titlePrefix": "南港TRE",
-    "tags": ["啦啦隊", "TRE", "南港"],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    "tags": ["啦啦隊", "TRE", "南港"]
   },
   {
     "folder": "20260731_新北新莊_FubonAngel",
