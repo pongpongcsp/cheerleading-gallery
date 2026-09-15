@@ -11,7 +11,7 @@
 - 響應式設計（手機 / 平板 / 桌機）
 - 黑金奢華主題配色
 - 無限滾動載入
-- 大圖集最佳化：每場挑約 50 張 → 縮圖 + lightbox、Cloudinary `f_auto,q_auto`
+- 大圖集最佳化：PixCull 離線 AI 選片（keep → keepers）→ 縮圖 + lightbox、Cloudinary `f_auto,q_auto`
 
 ## 線上網址
 
@@ -23,7 +23,8 @@ https://pongpongcsp.github.io/cheerleading-gallery/
 
 ```text
 D:\Photo\<event>
-  → cull（每場最多 ~50 keepers）
+  → cull（PixCull offline CLI，預設不設硬上限）
+  → manual confirm（看 culling-report.html，必要時改 keepers/）
   → compress（q85 / max-edge 2000）
   → upload Cloudinary
   → generate js/photos.js
@@ -32,12 +33,18 @@ D:\Photo\<event>
 
 ### 1. 安裝
 
+需要 **Python 3.11 或 3.12**（PixCull 不支援 3.13+）。建議專案 venv：
+
 ```bash
 npm install
-pip install pillow
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r requirements.txt
 copy .env.example .env
 REM 填入 Cloudinary 憑證
 ```
+
+`requirements.txt` 從 GitHub 安裝 PixCull（尚未穩定上 PyPI）。首次 `pixcull run` 會下載本機模型到 `~/.pixcull`。Gallery publish 只用離線 CLI，不要跑 `pixcull serve` / LAN / DeepSeek。Windows 上若 YAML 編碼出錯，請設 `PYTHONUTF8=1`（adapter 已自動設定）。
 
 ### 2. 一次處理全部 9 場（推薦）
 
@@ -50,28 +57,29 @@ publish-all.bat
 或：
 
 ```bash
-node tools/publish-events.js --max-keepers 50
+node tools/publish-events.js
 ```
 
 常用參數：
 
 ```bat
 publish-all.bat --skip-upload
+publish-all.bat --skip-confirm
 publish-all.bat --only 20250928_桃園_樂天女孩
 publish-all.bat --photo-root "D:\Photo"
 ```
 
-預算：目前先跑 **8 場** × ~50 ≈ **400** 張（`PassionSister` 已設 `skip: true`，之後再跑）。
+預設 **不設硬上限**（PixCull `keep` → keepers；`maybe`/`cull` 不進上傳）。每場 cull 完會 **暫停人工確認**（開報告、可刪 keepers 內不要的檔），確認後才 compress。自動化可加 `--skip-confirm`。Cloudinary 用量隨 keepers 增加；可選 `--max-keepers N` 強制上限。
 
 ### 3. 單場
 
 ```bat
-publish-event.bat "D:\Photo\20250928_桃園_樂天女孩" "20250928_桃園_樂天女孩" 50
+publish-event.bat "D:\Photo\20250928_桃園_樂天女孩" "20250928_桃園_樂天女孩"
 ```
 
 ### 4. 人工確認後上線
 
-打開每個 `culling\<folder>\culling-report.html` 看 keepers，然後：
+Pipeline 已在 cull 後暫停確認。全部上傳完成後：
 
 ```bash
 git add js/photos.js tools/gallery-folders.json index.html

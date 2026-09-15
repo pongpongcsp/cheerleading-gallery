@@ -11,12 +11,13 @@ Compress JPG/JPEG folders for web delivery. Preserve originals; write to a separ
 
 ```text
 RAW shoot
-  → 1) photo-culling (--max-keepers 50) → keepers/
-  → 2) compress-photo  (this skill)      → compressed/
-  → 3) gallery-publish                   → Cloudinary + js/photos.js
+  → 1) photo-culling (PixCull keep, uncapped) → keepers/
+  → 2) manual confirm (review / edit keepers)
+  → 3) compress-photo  (this skill)          → compressed/
+  → 4) gallery-publish                       → Cloudinary + js/photos.js
 ```
 
-Always compress **after** culling, **before** Cloudinary upload. Prefer compressing only the ~50 keepers, not the full RAW dump.
+Always compress **after** culling **and manual confirm**, **before** Cloudinary upload. Prefer compressing only the keepers folder, not the full RAW dump.
 
 ## Defaults (website / cheerleading-gallery)
 

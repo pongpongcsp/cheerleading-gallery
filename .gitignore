@@ -26,3 +26,7 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# YOLO weights (auto-downloaded on first cull)
+tools/photo_culler/weights/
+yolov8n-pose.pt

@@ -1,2 +1,15 @@
+# Gallery publish Python deps
+#
+# PixCull requires Python 3.11 or 3.12 (not 3.13+).
+# Not yet reliably on PyPI — install from GitHub tag.
+# First `pixcull run` downloads on-device models into ~/.pixcull (and InsightFace cache).
+# Offline CLI only for this repo — do not use `pixcull serve` / LAN / DeepSeek in publish.
+
+pixcull @ git+https://github.com/ChrisChen667788/pixcull.git@v2.36.0
 pillow>=10
-opencv-python-headless>=4.8,<5
+tqdm>=4.65
+
+# Optional: --legacy 4D culler (tools/photo_culler)
+# opencv-python-headless>=4.8,<5
+# numpy>=1.24
+# ultralytics>=8.0

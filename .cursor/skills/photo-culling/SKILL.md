@@ -1,38 +1,51 @@
 ---
 name: photo-culling
-description: Non-destructive first-pass culling for large photo folders. Use when the user wants to review, rank, cull, filter, shortlist keepers, find blurry shots, or group similar photos before website publish.
+description: Non-destructive AI first-pass culling for large photo folders. Use when the user wants to review, rank, cull, filter, shortlist keepers, find blurry shots, or group similar photos before website publish.
 ---
 
 # Photo Culling
 
-First-pass technical culling for large shoots. Never delete, overwrite, or move original photos unless the user explicitly asks.
+AI first-pass culling for large shoots via **PixCull offline CLI**. Never delete, overwrite, or move original photos unless the user explicitly asks.
 
 ## Place in the gallery pipeline
 
 ```text
 RAW shoot(s) under D:\Photo\<event>
-  → 1) photo-culling   (this skill)   → keepers/ (~50)
-  → 2) compress-photo                  → compressed/
-  → 3) gallery-publish                 → Cloudinary + js/photos.js + GitHub Pages
+  → 1) photo-culling   (this skill)   → keepers/ (PixCull keep, uncapped)
+  → 2) manual confirm                  → review report / edit keepers/
+  → 3) compress-photo                  → compressed/
+  → 4) gallery-publish                 → Cloudinary + js/photos.js + GitHub Pages
 ```
 
-For cheerleading-gallery / friend sharing, use a **hard keep budget** so Cloudinary stays manageable.
+Keeper volume is **score-based** from PixCull `keep` decisions (no default hard cap). Cloudinary cost scales with keepers — always skim the HTML report before upload.
 
 ## Prefer the project tool
 
+Requires **Python 3.11 or 3.12**.
+
 ```bash
-python tools/cull-photos.py "SOURCE_FOLDER" "OUTPUT_FOLDER" --max-keepers 50 --copy-keepers
+python -m venv .venv
+# Windows: .\.venv\Scripts\activate
+pip install -r requirements.txt
+python tools/cull-photos.py "SOURCE_FOLDER" "OUTPUT_FOLDER" --copy-keepers
 ```
 
+`requirements.txt` installs PixCull from GitHub (`v2.36.0` tag) because PyPI may not have a wheel yet.
 Useful flags:
 
 ```bash
---max-keepers 50          # hard top-N after de-dupe (default 50; 0 = no hard cap)
---similar-threshold 8
---review-percent 0.30     # only used when --max-keepers 0
+--max-keepers 0           # default: no hard cap (all PixCull keep)
+--max-keepers N           # optional hard top-N by PixCull score_final
+--scene event             # default; PixCull scene override
+--strictness standard     # strict | standard | lenient
 --copy-keepers
 --limit 50                # score only first N files (smoke test)
+--legacy                  # retired 4D YOLO/OpenCV culler (optional deps)
 ```
+
+First PixCull run downloads on-device models into `~/.pixcull` (and InsightFace cache).
+
+**Security:** offline CLI only. Do **not** run `pixcull serve`, bind `0.0.0.0`, share links, LAN sync, or set `DEEPSEEK_API_KEY` for gallery publish.
 
 Batch all configured events (Desktop):
 
@@ -49,19 +62,18 @@ publish-all.bat
 ## Recommended workflow
 
 1. Confirm source folder(s) exist under `D:\Photo\`.
-2. Dry-run one folder with `--limit 30 --max-keepers 10`.
-3. Open `OUTPUT_FOLDER/culling-report.html` and spot-check keepers.
-4. Run full folder with `--max-keepers 50 --copy-keepers`.
-5. Hand `keepers/` to compress-photo / publish-events.
-6. Do not auto-delete rejects.
+2. Dry-run one folder with `--limit 30`.
+3. Open `OUTPUT_FOLDER/culling-report.html` and spot-check keepers (pipeline pauses here by default).
+4. Edit `keepers/` if needed, then confirm to continue.
+5. Compress / publish proceeds only after confirm.
+6. Do not auto-delete originals.
 
-## Ranking rule
+## Ranking rule (PixCull)
 
-1. Reject clearly blurry / weak shots.
-2. Within each similar group, keep only the best 1 as a candidate (weaker duplicates reject/review).
-3. **Accept 人物正面**: if OpenCV detects a frontal face and the shot is not blur-rejected, promote to `keeper` (reason `frontal face (人物正面)`).
-4. Sort keepers with frontal-face shots first, then by technical score descending.
-5. Label top `--max-keepers` as `keeper`; remaining usable shots as `review`.
+1. PixCull scores each frame (6-axis rubric + fusion) and labels `keep` / `maybe` / `cull`.
+2. Gallery mapping: `keep` → keeper, `maybe` → review, `cull` → reject.
+3. Only **keepers** are copied for compress/upload (default).
+4. Optional: `--max-keepers N` truncates keepers to top-N by `score_final`.
 
 ## Output layout
 
@@ -70,10 +82,11 @@ OUTPUT_FOLDER/
   culling-report.html
   culling-report.csv
   thumbs/
-  keepers/          # only when --copy-keepers (~50 files)
+  pixcull/          # raw PixCull run (scores.csv, etc.)
+  keepers/          # only when --copy-keepers
   rejects/          # only when --copy-rejects
 ```
 
 ## Caveat
 
-Scores cover sharpness / exposure / similarity plus frontal-face accept (人物正面). They still ignore expression and storytelling nuance. Always skim the HTML report before uploading.
+PixCull still misses storytelling nuance. Always skim the HTML report before uploading.

@@ -1,83 +1,44 @@
 #!/usr/bin/env python3
-"""Non-destructive first-pass photo culling with HTML/CSV reports."""
+"""Non-destructive AI photo culling via PixCull CLI (offline).
+
+Default path: ``pixcull run`` → map keep/maybe/cull → keepers/ + HTML/CSV report.
+Never moves or deletes originals — copy keepers only.
+
+Security: offline CLI only. Do not use ``pixcull serve``, LAN bind, share links,
+or DeepSeek for gallery publish.
+
+Legacy 4D culler: ``--legacy`` (requires opencv + ultralytics).
+"""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import html
+import os
 import shutil
+import subprocess
 import sys
+import tempfile
 from collections import defaultdict
 from pathlib import Path
 
-try:
-    from PIL import Image, ImageFilter, ImageOps, ImageStat
-except ImportError:
-    print("Pillow is required. Install with: pip install pillow", file=sys.stderr)
-    sys.exit(1)
+from PIL import Image, ImageOps
 
-try:
-    import cv2
-    import numpy as np
-except ImportError:
-    cv2 = None  # type: ignore[assignment]
-    np = None  # type: ignore[assignment]
+IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", ".dng"}
 
-IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
-_FACE_CASCADE = None
-_FACE_CASCADE_WARNED = False
+# PixCull decision → gallery suggestion
+_DECISION_MAP = {
+    "keep": "keeper",
+    "maybe": "review",
+    "cull": "reject",
+}
 
 
-def _get_face_cascade():
-    """Load OpenCV frontal-face cascade once; None if unavailable."""
-    global _FACE_CASCADE, _FACE_CASCADE_WARNED
-    if cv2 is None:
-        if not _FACE_CASCADE_WARNED:
-            print(
-                "Warning: opencv-python-headless not installed — "
-                "skipping 人物正面 (frontal face) criterion. "
-                "Install with: pip install opencv-python-headless",
-                file=sys.stderr,
-            )
-            _FACE_CASCADE_WARNED = True
-        return None
-    if _FACE_CASCADE is False:
-        return None
-    if _FACE_CASCADE is not None:
-        return _FACE_CASCADE
-    cascade_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
-    cascade = cv2.CascadeClassifier(str(cascade_path))
-    if cascade.empty():
-        print(
-            f"Warning: could not load face cascade at {cascade_path} — "
-            "skipping 人物正面 criterion.",
-            file=sys.stderr,
-        )
-        _FACE_CASCADE = False
-        return None
-    _FACE_CASCADE = cascade
-    return _FACE_CASCADE
-
-
-def count_frontal_faces(gray: Image.Image) -> int:
-    """Count frontal faces (人物正面) on a Pillow grayscale sample."""
-    cascade = _get_face_cascade()
-    if cascade is None or np is None:
-        return 0
-    arr = np.array(gray)
-    faces = cascade.detectMultiScale(
-        arr,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(40, 40),
-    )
-    return len(faces)
-
-
-def iter_images(source: Path, limit: int | None):
+def iter_images(source: Path, limit: int | None) -> list[Path]:
     files = [
-        p for p in sorted(source.rglob("*"))
+        p
+        for p in sorted(source.rglob("*"))
         if p.is_file() and p.suffix.lower() in IMAGE_EXTS
     ]
     if limit:
@@ -85,184 +46,202 @@ def iter_images(source: Path, limit: int | None):
     return files
 
 
-def dhash(im: Image.Image, hash_size: int = 8) -> int:
-    gray = im.convert("L").resize((hash_size + 1, hash_size), Image.Resampling.LANCZOS)
-    if hasattr(gray, "get_flattened_data"):
-        pixels = list(gray.get_flattened_data())
-    else:
-        pixels = list(gray.getdata())
-    bits = 0
-    bit = 0
-    for row in range(hash_size):
-        row_start = row * (hash_size + 1)
-        for col in range(hash_size):
-            left = pixels[row_start + col]
-            right = pixels[row_start + col + 1]
-            if left > right:
-                bits |= 1 << bit
-            bit += 1
-    return bits
+def copy_selection(rows: list[dict], suggestion: str, source: Path, dest: Path) -> int:
+    count = 0
+    for row in rows:
+        if row["suggestion"] != suggestion:
+            continue
+        rel = row["path"].relative_to(source)
+        out = dest / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(row["path"], out)
+        count += 1
+    return count
 
 
-def hamming(a: int, b: int) -> int:
-    return (a ^ b).bit_count()
-
-
-def score_image(path: Path) -> dict:
-    with Image.open(path) as im:
+def make_thumb(src: Path, dst: Path) -> None:
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    with Image.open(src) as im:
         im = ImageOps.exif_transpose(im)
-        w, h = im.size
-        sample = im.copy()
-        sample.thumbnail((512, 512), Image.Resampling.BILINEAR)
-        gray = sample.convert("L")
-
-        # Variance of FIND_EDGES response — portable blur proxy
-        edges = gray.filter(ImageFilter.FIND_EDGES)
-        sharpness = ImageStat.Stat(edges).stddev[0] ** 2
-        brightness = ImageStat.Stat(gray).mean[0]
-        contrast = ImageStat.Stat(gray).stddev[0]
-        hist = gray.histogram()
-        total = sum(hist) or 1
-        clip_low = sum(hist[:5]) / total
-        clip_high = sum(hist[-5:]) / total
-        clipping = clip_low + clip_high
-        hash_val = dhash(sample)
-        frontal_faces = count_frontal_faces(gray)
-
-    sharp_score = max(0.0, min(45.0, (sharpness ** 0.5) * 3.5))
-    contrast_score = max(0.0, min(25.0, contrast))
-    bright_penalty = abs(brightness - 128) / 128 * 20
-    clip_penalty = min(25.0, clipping * 100)
-    score = max(0.0, sharp_score + contrast_score + 20 - bright_penalty - clip_penalty)
-
-    return {
-        "path": path,
-        "width": w,
-        "height": h,
-        "sharpness": round(sharpness, 2),
-        "brightness": round(brightness, 2),
-        "contrast": round(contrast, 2),
-        "clipping": round(clipping, 4),
-        "score": round(score, 2),
-        "dhash": hash_val,
-        "frontal_faces": frontal_faces,
-    }
+        im.thumbnail((360, 360), Image.Resampling.LANCZOS)
+        if im.mode not in ("RGB", "L"):
+            im = im.convert("RGB")
+        im.save(dst, format="JPEG", quality=75, optimize=True)
 
 
-def group_similar(rows: list[dict], threshold: int) -> list[list[dict]]:
-    groups: list[list[dict]] = []
-    used = set()
-    for i, row in enumerate(rows):
-        if i in used:
+def stage_limited_source(source: Path, files: list[Path], staging: Path) -> None:
+    """Hardlink (or copy) limited files into staging, preserving relative paths."""
+    for path in files:
+        rel = path.relative_to(source)
+        dest = staging / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.exists():
             continue
-        group = [row]
-        used.add(i)
-        for j in range(i + 1, len(rows)):
-            if j in used:
-                continue
-            if hamming(row["dhash"], rows[j]["dhash"]) <= threshold:
-                group.append(rows[j])
-                used.add(j)
-        groups.append(group)
-    return groups
+        try:
+            os.link(path, dest)
+        except OSError:
+            shutil.copy2(path, dest)
 
 
-def label_rows(
-    rows: list[dict],
-    similar_threshold: int,
-    review_percent: float,
-    max_keepers: int = 0,
-) -> list[dict]:
-    if not rows:
-        return []
-
-    sharp_values = sorted(r["sharpness"] for r in rows)
-    blur_cutoff = sharp_values[max(0, int(len(sharp_values) * 0.15) - 1)]
-    median_sharp = sharp_values[len(sharp_values) // 2]
-
-    groups = group_similar(rows, similar_threshold)
-    labeled = []
-    for group in groups:
-        ranked = sorted(group, key=lambda r: r["score"], reverse=True)
-        best = ranked[0]
-        for idx, row in enumerate(ranked):
-            item = dict(row)
-            item["group_size"] = len(group)
-
-            very_blurry = row["sharpness"] < max(median_sharp * 0.12, 1e-6)
-            is_blurry = (
-                very_blurry
-                or (
-                    row["sharpness"] <= blur_cutoff
-                    and row["sharpness"] < max(best["sharpness"] * 0.55, 1e-6)
-                )
-            )
-            if is_blurry and (very_blurry or len(group) == 1 or idx > 0 or row["score"] < 35):
-                item["suggestion"] = "reject"
-                item["reason"] = "likely blurry vs batch"
-            elif idx == 0:
-                # Best in group is a candidate; weaker duplicates are reject
-                item["suggestion"] = "keeper"
-                if row.get("frontal_faces", 0) >= 1:
-                    item["reason"] = "frontal face (人物正面)"
-                elif len(group) > 1:
-                    item["reason"] = "best in similar group"
-                else:
-                    item["reason"] = "strong technical score"
-            elif best["score"] - row["score"] >= 6 or row["score"] < best["score"] * 0.85:
-                item["suggestion"] = "reject"
-                item["reason"] = "weaker duplicate or low score"
-            else:
-                item["suggestion"] = "review"
-                item["reason"] = "similar alternative"
-            labeled.append(item)
-
-    # Accept clear frontal person shots (人物正面) that were not blur-rejected
-    for row in labeled:
-        if row["suggestion"] == "reject":
-            continue
-        if row.get("frontal_faces", 0) >= 1 and row["suggestion"] != "keeper":
-            row["suggestion"] = "keeper"
-            row["reason"] = "frontal face (人物正面)"
-
-    # Optional soft demotion when no hard max-keepers cap
-    keepers = [r for r in labeled if r["suggestion"] == "keeper"]
-    if not max_keepers and keepers and review_percent > 0 and len(keepers) > 1:
-        ranked_scores = sorted((r["score"] for r in keepers), reverse=True)
-        keep_n = max(1, int(round(len(ranked_scores) * (1 - review_percent))))
-        keep_cutoff = ranked_scores[keep_n - 1]
-        for row in labeled:
-            if (
-                row["suggestion"] == "keeper"
-                and row["group_size"] == 1
-                and row.get("frontal_faces", 0) < 1
-                and row["score"] < keep_cutoff
-            ):
-                row["suggestion"] = "review"
-                row["reason"] = "borderline solo shot"
-
-    # Hard top-N budget for Cloudinary / friend sharing
-    # Frontal-face keepers rank ahead of non-frontal, then by score
-    if max_keepers and max_keepers > 0:
-        ranked_keepers = sorted(
-            [r for r in labeled if r["suggestion"] == "keeper"],
-            key=lambda r: (1 if r.get("frontal_faces", 0) >= 1 else 0, r["score"]),
-            reverse=True,
-        )
-        keep_set = {id(r) for r in ranked_keepers[:max_keepers]}
-        for row in labeled:
-            if row["suggestion"] == "keeper" and id(row) not in keep_set:
-                row["suggestion"] = "review"
-                row["reason"] = f"outside top {max_keepers} keepers"
-
-    labeled.sort(
-        key=lambda r: (
-            -{"keeper": 2, "review": 1, "reject": 0}[r["suggestion"]],
-            -(1 if r.get("frontal_faces", 0) >= 1 else 0),
-            -r["score"],
-        )
+def resolve_pixcull_cmd() -> list[str]:
+    """Prefer same-interpreter ``python -m pixcull``; fall back to PATH console script."""
+    probe = subprocess.run(
+        [sys.executable, "-m", "pixcull", "--help"],
+        capture_output=True,
+        text=True,
     )
-    return labeled
+    if probe.returncode == 0:
+        return [sys.executable, "-m", "pixcull"]
+    which = shutil.which("pixcull")
+    if which:
+        return [which]
+    print(
+        "PixCull is not installed for this Python.\n"
+        "  pip install -r requirements.txt\n"
+        "Requires Python 3.11 or 3.12.",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
+
+def run_pixcull(input_dir: Path, pix_out: Path, scene: str, strictness: str) -> Path:
+    pix_out.mkdir(parents=True, exist_ok=True)
+    cmd = resolve_pixcull_cmd() + [
+        "run",
+        str(input_dir),
+        "-o",
+        str(pix_out),
+        "--scene",
+        scene,
+        "--strictness",
+        strictness,
+    ]
+    print(f"$ {' '.join(cmd)}")
+    # PixCull opens YAML templates with open() and no encoding=; on Windows
+    # the locale codec (e.g. cp950) breaks UTF-8 Chinese in scene templates.
+    env = os.environ.copy()
+    env.setdefault("PYTHONUTF8", "1")
+    env.setdefault("PYTHONIOENCODING", "utf-8")
+    result = subprocess.run(cmd, env=env)
+    if result.returncode != 0:
+        print(f"pixcull run failed with exit code {result.returncode}", file=sys.stderr)
+        raise SystemExit(result.returncode or 1)
+    scores = pix_out / "scores.csv"
+    if not scores.is_file():
+        print(f"Expected scores.csv missing: {scores}", file=sys.stderr)
+        raise SystemExit(1)
+    return scores
+
+
+def _cell(row: dict, *names: str, default: str = "") -> str:
+    for name in names:
+        if name in row and row[name] not in (None, ""):
+            return str(row[name]).strip()
+    return default
+
+
+def load_pixcull_rows(scores_csv: Path, source: Path) -> list[dict]:
+    """Parse PixCull scores.csv into gallery row dicts keyed to source paths."""
+    rows: list[dict] = []
+    with scores_csv.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for raw in reader:
+            decision = _cell(raw, "decision").lower()
+            suggestion = _DECISION_MAP.get(decision, "review")
+            path_raw = _cell(raw, "path", "filepath", "file")
+            filename = _cell(raw, "filename", "file", "name")
+
+            resolved: Path | None = None
+            if path_raw:
+                candidate = Path(path_raw)
+                if candidate.is_file():
+                    resolved = candidate.resolve()
+                else:
+                    # Relative to source
+                    under = (source / path_raw).resolve()
+                    if under.is_file():
+                        resolved = under
+
+            if resolved is None and filename:
+                # Basename search under source (handles staging / absolute mismatch)
+                matches = list(source.rglob(filename))
+                if len(matches) == 1:
+                    resolved = matches[0].resolve()
+                elif len(matches) > 1:
+                    # Prefer exact relative match if path_raw looks like a relative path
+                    for m in matches:
+                        try:
+                            m.relative_to(source)
+                            resolved = m.resolve()
+                            break
+                        except ValueError:
+                            continue
+                    if resolved is None:
+                        resolved = matches[0].resolve()
+
+            if resolved is None or not resolved.is_file():
+                print(f"  skip unresolved row: {path_raw or filename}", file=sys.stderr)
+                continue
+
+            try:
+                score = float(_cell(raw, "score_final", "score", default="0") or 0)
+            except ValueError:
+                score = 0.0
+
+            reason_bits = [
+                f"pixcull:{decision or 'unknown'}",
+            ]
+            for axis in (
+                "score_technical",
+                "score_subject",
+                "score_composition",
+                "score_light",
+                "score_moment",
+                "score_aesthetic",
+                "technical",
+                "subject",
+                "composition",
+                "light",
+                "moment",
+                "aesthetic",
+            ):
+                val = _cell(raw, axis)
+                if val:
+                    reason_bits.append(f"{axis}={val}")
+
+            rows.append(
+                {
+                    "path": resolved,
+                    "suggestion": suggestion,
+                    "reason": " · ".join(reason_bits[:8]),
+                    "score": round(score, 4),
+                    "decision": decision,
+                    "width": _cell(raw, "width", default=""),
+                    "height": _cell(raw, "height", default=""),
+                    "group_size": 1,
+                    "sharpness": "",
+                    "pose_conf": "",
+                    "occlusion_penalty": "",
+                    "lighting_score": "",
+                }
+            )
+    return rows
+
+
+def apply_max_keepers(rows: list[dict], max_keepers: int) -> list[dict]:
+    """Keep-only set; optional hard top-N by PixCull score_final."""
+    if not max_keepers or max_keepers <= 0:
+        return rows
+    keepers = [r for r in rows if r["suggestion"] == "keeper"]
+    if len(keepers) <= max_keepers:
+        return rows
+    ranked = sorted(keepers, key=lambda r: r["score"], reverse=True)
+    keep_ids = {id(r) for r in ranked[:max_keepers]}
+    for row in rows:
+        if row["suggestion"] == "keeper" and id(row) not in keep_ids:
+            row["suggestion"] = "review"
+            row["reason"] = f"outside top {max_keepers} keepers · {row['reason']}"
+    return rows
 
 
 def write_csv(path: Path, rows: list[dict], source: Path) -> None:
@@ -270,37 +249,45 @@ def write_csv(path: Path, rows: list[dict], source: Path) -> None:
         writer = csv.DictWriter(
             f,
             fieldnames=[
-                "file", "suggestion", "reason", "score", "sharpness",
-                "brightness", "contrast", "clipping", "frontal_faces",
-                "width", "height", "group_size",
+                "file",
+                "suggestion",
+                "reason",
+                "score",
+                "decision",
+                "width",
+                "height",
             ],
         )
         writer.writeheader()
         for row in rows:
-            writer.writerow({
-                "file": str(row["path"].relative_to(source)),
-                "suggestion": row["suggestion"],
-                "reason": row["reason"],
-                "score": row["score"],
-                "sharpness": row["sharpness"],
-                "brightness": row["brightness"],
-                "contrast": row["contrast"],
-                "clipping": row["clipping"],
-                "frontal_faces": row.get("frontal_faces", 0),
-                "width": row["width"],
-                "height": row["height"],
-                "group_size": row["group_size"],
-            })
+            try:
+                rel = str(row["path"].relative_to(source))
+            except ValueError:
+                rel = row["path"].name
+            writer.writerow(
+                {
+                    "file": rel,
+                    "suggestion": row["suggestion"],
+                    "reason": row["reason"],
+                    "score": row["score"],
+                    "decision": row.get("decision", ""),
+                    "width": row.get("width", ""),
+                    "height": row.get("height", ""),
+                }
+            )
 
 
 def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> None:
-    counts = defaultdict(int)
+    counts: dict[str, int] = defaultdict(int)
     for row in rows:
         counts[row["suggestion"]] += 1
 
     cards = []
     for row in rows:
-        rel = row["path"].relative_to(source)
+        try:
+            rel = row["path"].relative_to(source)
+        except ValueError:
+            rel = Path(row["path"].name)
         thumb_rel = Path("thumbs") / f"{rel.as_posix().replace('/', '__')}.jpg"
         cards.append(
             f"""
@@ -309,13 +296,19 @@ def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> 
               <div class="meta">
                 <strong>{html.escape(row['suggestion'].upper())}</strong>
                 <span>{html.escape(str(rel))}</span>
-                <span>score {row['score']} · sharp {row['sharpness']} · faces {row.get('frontal_faces', 0)} · group {row['group_size']}</span>
+                <span>score {row['score']} · pixcull {html.escape(str(row.get('decision', '')))}</span>
                 <em>{html.escape(row['reason'])}</em>
               </div>
             </article>
             """
         )
 
+    cap_note = (
+        "No hard keeper cap — skim keepers manually before publishing "
+        "(Cloudinary cost scales with volume)."
+        if counts["keeper"]
+        else "No keepers selected."
+    )
     doc = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -340,8 +333,8 @@ def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> 
     <h1>Culling Report</h1>
     <p>Source: {html.escape(str(source))}</p>
     <p>keepers {counts['keeper']} · review {counts['review']} · reject {counts['reject']} · total {len(rows)}</p>
-    <p>Frontal face (人物正面) is an accept signal — those shots get keeper priority when sharp enough.</p>
-    <p>Suggestions only — review keepers manually before publishing.</p>
+    <p>Engine: PixCull offline CLI (keep → keeper, maybe → review, cull → reject).</p>
+    <p>{html.escape(cap_note)}</p>
   </header>
   <div class="grid">
     {''.join(cards)}
@@ -352,45 +345,14 @@ def write_html(path: Path, rows: list[dict], source: Path, thumbs_dir: Path) -> 
     path.write_text(doc, encoding="utf-8")
 
 
-def make_thumb(src: Path, dst: Path) -> None:
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    with Image.open(src) as im:
-        im = ImageOps.exif_transpose(im)
-        im.thumbnail((360, 360), Image.Resampling.LANCZOS)
-        if im.mode not in ("RGB", "L"):
-            im = im.convert("RGB")
-        im.save(dst, format="JPEG", quality=75, optimize=True)
-
-
-def copy_selection(rows: list[dict], suggestion: str, source: Path, dest: Path) -> int:
-    count = 0
-    for row in rows:
-        if row["suggestion"] != suggestion:
-            continue
-        rel = row["path"].relative_to(source)
-        out = dest / rel
-        out.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(row["path"], out)
-        count += 1
-    return count
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source")
-    parser.add_argument("output")
-    parser.add_argument("--similar-threshold", type=int, default=8)
-    parser.add_argument("--review-percent", type=float, default=0.30)
-    parser.add_argument(
-        "--max-keepers",
-        type=int,
-        default=50,
-        help="Hard cap of keeper photos after de-dupe (0 = no hard cap). Default: 50",
-    )
-    parser.add_argument("--copy-keepers", action="store_true")
-    parser.add_argument("--copy-rejects", action="store_true")
-    parser.add_argument("--limit", type=int, default=0)
-    args = parser.parse_args()
+def run_legacy(args: argparse.Namespace) -> int:
+    """Previous 4D YOLO/OpenCV culler (quarantined behind --legacy)."""
+    tools_dir = Path(__file__).resolve().parent
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
+    from photo_culler import label_rows, make_thumb as legacy_thumb  # noqa: E402
+    from photo_culler import score_image, write_csv as legacy_csv  # noqa: E402
+    from photo_culler import write_html as legacy_html  # noqa: E402
 
     source = Path(args.source).expanduser().resolve()
     output = Path(args.output).expanduser().resolve()
@@ -403,16 +365,21 @@ def main() -> int:
         print(f"No images found in {source}", file=sys.stderr)
         return 1
 
-    print(f"Scoring {len(files)} images from {source} ...")
-    if args.max_keepers:
-        print(f"Max keepers: {args.max_keepers}")
+    print(f"[legacy] Scoring {len(files)} images from {source} ...")
     rows = []
-    for i, path in enumerate(files, 1):
+    try:
+        from tqdm import tqdm
+
+        iterator = tqdm(files, unit="img")
+    except ImportError:
+        iterator = files
+
+    for i, path in enumerate(iterator, 1):
         try:
             rows.append(score_image(path))
         except Exception as exc:  # noqa: BLE001
             print(f"  skip {path.name}: {exc}", file=sys.stderr)
-        if i % 25 == 0 or i == len(files):
+        if not hasattr(iterator, "update") and (i % 25 == 0 or i == len(files)):
             print(f"  {i}/{len(files)}")
 
     labeled = label_rows(
@@ -423,17 +390,16 @@ def main() -> int:
     )
     output.mkdir(parents=True, exist_ok=True)
     thumbs = output / "thumbs"
-
     for row in labeled:
         rel = row["path"].relative_to(source)
         thumb_path = thumbs / f"{rel.as_posix().replace('/', '__')}.jpg"
         try:
-            make_thumb(row["path"], thumb_path)
+            legacy_thumb(row["path"], thumb_path)
         except Exception as exc:  # noqa: BLE001
             print(f"  thumb failed {rel}: {exc}", file=sys.stderr)
 
-    write_csv(output / "culling-report.csv", labeled, source)
-    write_html(output / "culling-report.html", labeled, source, thumbs)
+    legacy_csv(output / "culling-report.csv", labeled, source)
+    legacy_html(output / "culling-report.html", labeled, source, thumbs)
 
     if args.copy_keepers:
         n = copy_selection(labeled, "keeper", source, output / "keepers")
@@ -442,14 +408,170 @@ def main() -> int:
         n = copy_selection(labeled, "reject", source, output / "rejects")
         print(f"Copied rejects: {n}")
 
-    counts = defaultdict(int)
+    counts: dict[str, int] = defaultdict(int)
     for row in labeled:
         counts[row["suggestion"]] += 1
     print()
     print(f"Report: {output / 'culling-report.html'}")
-    print(f"keepers {counts['keeper']} · review {counts['review']} · reject {counts['reject']}")
-    print("Suggestions only — review before publishing.")
+    print(
+        f"keepers {counts['keeper']} · review {counts['review']} · reject {counts['reject']}"
+    )
     return 0
+
+
+def run_pixcull_adapter(args: argparse.Namespace) -> int:
+    source = Path(args.source).expanduser().resolve()
+    output = Path(args.output).expanduser().resolve()
+    if not source.is_dir():
+        print(f"Source folder not found: {source}", file=sys.stderr)
+        return 1
+
+    all_files = iter_images(source, None)
+    if not all_files:
+        print(f"No images found in {source}", file=sys.stderr)
+        return 1
+
+    files = all_files[: args.limit] if args.limit else all_files
+    print(f"PixCull scoring {len(files)} images from {source} ...")
+    if args.max_keepers:
+        print(f"Max keepers: {args.max_keepers}")
+    else:
+        print("Max keepers: uncapped (PixCull keep decisions)")
+
+    output.mkdir(parents=True, exist_ok=True)
+    pix_out = output / "pixcull"
+    staging_ctx = None
+    input_dir = source
+
+    try:
+        if args.limit and args.limit < len(all_files):
+            staging_ctx = tempfile.TemporaryDirectory(prefix="pixcull_limit_")
+            staging = Path(staging_ctx.name)
+            print(f"Staging limited set ({len(files)} files) → {staging}")
+            stage_limited_source(source, files, staging)
+            input_dir = staging
+
+        scores_csv = run_pixcull(
+            input_dir,
+            pix_out,
+            scene=args.scene,
+            strictness=args.strictness,
+        )
+        # Resolve paths relative to the directory PixCull actually scanned
+        rows = load_pixcull_rows(scores_csv, input_dir)
+
+        # Remap staging paths back to the real source tree
+        if input_dir != source:
+            remapped = []
+            for row in rows:
+                try:
+                    rel = row["path"].relative_to(input_dir)
+                except ValueError:
+                    remapped.append(row)
+                    continue
+                real = (source / rel).resolve()
+                if real.is_file():
+                    row["path"] = real
+                    remapped.append(row)
+                else:
+                    print(f"  skip missing after remap: {rel}", file=sys.stderr)
+            rows = remapped
+
+        rows = apply_max_keepers(rows, args.max_keepers)
+
+        thumbs = output / "thumbs"
+        for row in rows:
+            try:
+                rel = row["path"].relative_to(source)
+            except ValueError:
+                rel = Path(row["path"].name)
+            thumb_path = thumbs / f"{rel.as_posix().replace('/', '__')}.jpg"
+            try:
+                make_thumb(row["path"], thumb_path)
+            except Exception as exc:  # noqa: BLE001
+                print(f"  thumb failed {rel}: {exc}", file=sys.stderr)
+
+        write_csv(output / "culling-report.csv", rows, source)
+        write_html(output / "culling-report.html", rows, source, thumbs)
+
+        if args.copy_keepers:
+            n = copy_selection(rows, "keeper", source, output / "keepers")
+            print(f"Copied keepers: {n}")
+        if args.copy_rejects:
+            n = copy_selection(rows, "reject", source, output / "rejects")
+            print(f"Copied rejects: {n}")
+
+        counts: dict[str, int] = defaultdict(int)
+        for row in rows:
+            counts[row["suggestion"]] += 1
+        print()
+        print(f"Report: {output / 'culling-report.html'}")
+        print(f"PixCull run dir: {pix_out}")
+        print(
+            f"keepers {counts['keeper']} · review {counts['review']} · "
+            f"reject {counts['reject']}"
+        )
+        print(
+            "Suggestions only — review before publishing "
+            "(non-destructive; originals untouched)."
+        )
+        return 0
+    finally:
+        if staging_ctx is not None:
+            staging_ctx.cleanup()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("source")
+    parser.add_argument("output")
+    parser.add_argument(
+        "--similar-threshold",
+        type=int,
+        default=8,
+        help="Legacy only: dHash similar-group threshold.",
+    )
+    parser.add_argument(
+        "--review-percent",
+        type=float,
+        default=0.30,
+        help="Legacy only: demote bottom percent of keepers to review.",
+    )
+    parser.add_argument(
+        "--max-keepers",
+        type=int,
+        default=0,
+        help="Optional hard cap of keepers (0 = no hard cap, default).",
+    )
+    parser.add_argument("--copy-keepers", action="store_true")
+    parser.add_argument("--copy-rejects", action="store_true")
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Score only first N images (smoke test).",
+    )
+    parser.add_argument(
+        "--scene",
+        default="event",
+        help="PixCull scene override (default: event). Ignored with --legacy.",
+    )
+    parser.add_argument(
+        "--strictness",
+        default="standard",
+        choices=("strict", "standard", "lenient"),
+        help="PixCull strictness (default: standard).",
+    )
+    parser.add_argument(
+        "--legacy",
+        action="store_true",
+        help="Use retired 4D YOLO/OpenCV culler instead of PixCull.",
+    )
+    args = parser.parse_args()
+
+    if args.legacy:
+        return run_legacy(args)
+    return run_pixcull_adapter(args)
 
 
 if __name__ == "__main__":
