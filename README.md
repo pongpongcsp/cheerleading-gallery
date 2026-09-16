@@ -93,25 +93,25 @@ Cursor skills：`photo-culling`、`compress-photo`、`gallery-publish`。
 
 | folder | Tab |
 |--------|-----|
-| 20250809_台北南港_TRE | 南港 TRE |
-| 20250810_台北大巨蛋_樂天女孩 | 大巨蛋 樂天女孩 08/10 |
-| 20250824_電腦節_樂天女孩 | 電腦節 樂天女孩 |
-| 20250928_桃園_樂天女孩 | 桃園 樂天女孩 |
-| 20260328_台北大巨蛋_樂天女孩 | 大巨蛋 樂天女孩 03/28 |
-| 20260329_台北大巨蛋_樂天女孩 | 大巨蛋 樂天女孩 03/29 |
-| 20260606_台中洲際_PassionSister | 台中 PassionSister |
-| 20260607_台北大巨蛋_UniGirls | 大巨蛋 UniGirls |
-| 20260607_台北南港_金佳垠 | 南港 金佳垠 |
-| 20260704_台中洲際_PassionSister | 台中 PassionSister 07/04 |
-| 20260705_台北南港_TRE | 南港 TRE 07/05 |
-| 20260731_新北新莊_FubonAngel | 新莊 Fubon Angels 07/31 |
-| 20260801_台北大巨蛋_DragonBeauties | 大巨蛋 Dragon Beauties 08/01 |
-| 20260802_新北新莊_FubonAngel | 新莊 Fubon Angels 08/02 |
-| 20260815_台中新光三越_金泰希 | 台中 金泰希 |
-| 20260815_台中洲際_PassionSister | 台中 PassionSister 08/15 |
-| 20260816_台北大巨蛋_DragonBeauties | 大巨蛋 Dragon Beauties 08/16 |
-| 20260823_電腦節_FubonAngel | 電腦節 Fubon Angels |
-| 20260823_電腦節_小迪 | 電腦節 小迪 |
+| 20250809_台北南港_TRE | 2025/08/09 南港 TRE |
+| 20250810_台北大巨蛋_樂天女孩 | 2025/08/10 大巨蛋 樂天女孩 |
+| 20250824_電腦節_樂天女孩 | 2025/08/24 電腦節 樂天女孩 |
+| 20250928_桃園_樂天女孩 | 2025/09/28 桃園 樂天女孩 |
+| 20260328_台北大巨蛋_樂天女孩 | 2026/03/28 大巨蛋 樂天女孩 |
+| 20260329_台北大巨蛋_樂天女孩 | 2026/03/29 大巨蛋 樂天女孩 |
+| 20260606_台中洲際_PassionSister | 2026/06/06 台中 PassionSister |
+| 20260607_台北大巨蛋_UniGirls | 2026/06/07 大巨蛋 UniGirls |
+| 20260607_台北南港_金佳垠 | 2026/06/07 南港 金佳垠 |
+| 20260704_台中洲際_PassionSister | 2026/07/04 台中 PassionSister |
+| 20260705_台北南港_TRE | 2026/07/05 南港 TRE |
+| 20260731_新北新莊_FubonAngel | 2026/07/31 新莊 Fubon Angels |
+| 20260801_台北大巨蛋_DragonBeauties | 2026/08/01 大巨蛋 Dragon Beauties |
+| 20260802_新北新莊_FubonAngel | 2026/08/02 新莊 Fubon Angels |
+| 20260815_台中新光三越_金泰希 | 2026/08/15 台中 金泰希 |
+| 20260815_台中洲際_PassionSister | 2026/08/15 台中 PassionSister |
+| 20260816_台北大巨蛋_DragonBeauties | 2026/08/16 大巨蛋 Dragon Beauties |
+| 20260823_電腦節_FubonAngel | 2026/08/23 電腦節 Fubon Angels |
+| 20260823_電腦節_小迪 | 2026/08/23 電腦節 小迪 |
 
 ## 相關 repo
 
