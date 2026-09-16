@@ -81,9 +81,7 @@
       "啦啦隊",
       "PassionSister",
       "台中"
-    ],
-    "skip": true,
-    "skipReason": "Deferred — run later (large folder)"
+    ]
   },
   {
     "folder": "20260607_台北大巨蛋_UniGirls",
@@ -119,9 +117,7 @@
       "啦啦隊",
       "PassionSister",
       "台中"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260705_台北南港_TRE",
@@ -145,9 +141,7 @@
       "啦啦隊",
       "Fubon Angels",
       "新莊"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260801_台北大巨蛋_DragonBeauties",
@@ -159,9 +153,7 @@
       "啦啦隊",
       "Dragon Beauties",
       "大巨蛋"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260802_新北新莊_FubonAngel",
@@ -173,9 +165,7 @@
       "啦啦隊",
       "Fubon Angels",
       "新莊"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260815_台中新光三越_金泰希",
@@ -187,9 +177,7 @@
       "啦啦隊",
       "金泰希",
       "台中"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260815_台中洲際_PassionSister",
@@ -201,9 +189,7 @@
       "啦啦隊",
       "PassionSister",
       "台中"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260816_台北大巨蛋_DragonBeauties",
@@ -215,9 +201,7 @@
       "啦啦隊",
       "Dragon Beauties",
       "大巨蛋"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260823_電腦節_FubonAngel",
@@ -229,9 +213,7 @@
       "啦啦隊",
       "Fubon Angels",
       "電腦節"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   },
   {
     "folder": "20260823_電腦節_小迪",
@@ -243,8 +225,6 @@
       "啦啦隊",
       "小迪",
       "電腦節"
-    ],
-    "skip": true,
-    "skipReason": "Visual cull done — not uploaded yet"
+    ]
   }
 ]
