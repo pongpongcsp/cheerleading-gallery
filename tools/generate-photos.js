@@ -31,6 +31,21 @@ async function fetchAllFromFolder(cloudinary, folder) {
   return resources;
 }
 
+function filenameFromPublicId(publicId) {
+  return path.basename(publicId || "").toLowerCase();
+}
+
+/** Sort DSC21354 before DSC21360 (Cloudinary often returns the reverse). */
+function sortByFilename(resources) {
+  return [...resources].sort((a, b) =>
+    filenameFromPublicId(a.public_id).localeCompare(
+      filenameFromPublicId(b.public_id),
+      undefined,
+      { numeric: true, sensitivity: "base" }
+    )
+  );
+}
+
 function titleFromPublicId(publicId, index) {
   const base = path.basename(publicId);
   const cleaned = base
@@ -72,7 +87,7 @@ async function main() {
     }
     process.stdout.write(`Fetching "${folder}"... `);
     try {
-      const resources = await fetchAllFromFolder(cloudinary, folder);
+      const resources = sortByFilename(await fetchAllFromFolder(cloudinary, folder));
       console.log(`${resources.length} assets`);
 
       let index = 0;
