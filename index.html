@@ -33,6 +33,19 @@
     </div>
   </section>
 
+  <!-- Event picker -->
+  <div class="event-toolbar">
+    <label class="event-select-wrap">
+      <span class="event-select-label">選擇場次</span>
+      <select id="eventSelect" aria-label="選擇場次"></select>
+    </label>
+    <div class="year-filters" id="yearFilters" role="group" aria-label="依年份篩選">
+      <button type="button" class="year-chip active" data-year="all">全部年份</button>
+      <button type="button" class="year-chip" data-year="2025">2025</button>
+      <button type="button" class="year-chip" data-year="2026">2026</button>
+    </div>
+  </div>
+
   <!-- Tabs -->
   <nav class="tabs" id="tabs">
     <button class="tab active" data-category="all">全部</button>

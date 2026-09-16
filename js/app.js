@@ -1,6 +1,7 @@
 /* ── State ── */
 const state = {
   currentCategory: 'all',
+  yearFilter: 'all',
   searchQuery: '',
   filteredPhotos: [],
   renderedCount: 0,
@@ -16,6 +17,8 @@ const grid = document.getElementById('galleryGrid');
 const loader = document.getElementById('galleryLoader');
 const photoCount = document.getElementById('photoCount');
 const tabs = document.querySelectorAll('.tab');
+const eventSelect = document.getElementById('eventSelect');
+const yearFilters = document.getElementById('yearFilters');
 const searchInput = document.getElementById('searchInput');
 const lightbox = document.getElementById('lightbox');
 const lightboxImage = document.getElementById('lightboxImage');
@@ -27,20 +30,71 @@ const lightboxClose = document.getElementById('lightboxClose');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 
+function tabYear(tab) {
+  const match = tab.textContent.trim().match(/^(\d{4})\//);
+  return match ? match[1] : null;
+}
+
+function photoYear(photo) {
+  const match = (photo.categoryLabel || '').match(/^(\d{4})\//);
+  return match ? match[1] : null;
+}
+
+function applyYearVisibility() {
+  tabs.forEach((tab) => {
+    if (tab.dataset.category === 'all') {
+      tab.hidden = false;
+      return;
+    }
+    const year = tabYear(tab);
+    tab.hidden = state.yearFilter !== 'all' && year !== state.yearFilter;
+  });
+}
+
+function setCategory(category, { fromYear } = {}) {
+  const tab = [...tabs].find((t) => t.dataset.category === category);
+  if (tab && !fromYear) {
+    const year = tabYear(tab);
+    if (year && state.yearFilter !== 'all' && year !== state.yearFilter) {
+      state.yearFilter = year;
+      yearFilters.querySelectorAll('.year-chip').forEach((chip) => {
+        chip.classList.toggle('active', chip.dataset.year === year);
+      });
+    }
+  }
+
+  state.currentCategory = category;
+  applyYearVisibility();
+  tabs.forEach((t) => t.classList.toggle('active', t.dataset.category === category));
+  if (eventSelect) eventSelect.value = category;
+
+  const active = [...tabs].find((t) => t.dataset.category === category && !t.hidden);
+  const nav = document.getElementById('tabs');
+  if (active && nav) {
+    const left = active.offsetLeft - nav.clientWidth / 2 + active.offsetWidth / 2;
+    nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+  }
+
+  renderGallery(true);
+}
+
 /* ── Filtering ── */
 function getFilteredPhotos() {
   let photos = [...allPhotos];
 
   if (state.currentCategory !== 'all') {
-    photos = photos.filter(p => p.category === state.currentCategory);
+    photos = photos.filter((p) => p.category === state.currentCategory);
+  } else if (state.yearFilter !== 'all') {
+    photos = photos.filter((p) => photoYear(p) === state.yearFilter);
   }
 
   if (state.searchQuery.trim()) {
     const q = state.searchQuery.trim().toLowerCase();
-    photos = photos.filter(p =>
-      p.title.toLowerCase().includes(q) ||
-      p.tags.some(t => t.toLowerCase().includes(q)) ||
-      p.categoryLabel.includes(q)
+    photos = photos.filter(
+      (p) =>
+        p.title.toLowerCase().includes(q) ||
+        p.tags.some((t) => t.toLowerCase().includes(q)) ||
+        p.categoryLabel.includes(q)
     );
   }
 
@@ -125,15 +179,61 @@ const observer = new IntersectionObserver((entries) => {
 
 observer.observe(loader);
 
-/* ── Tabs ── */
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    tabs.forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    state.currentCategory = tab.dataset.category;
-    renderGallery(true);
+/* ── Tabs, dropdown, year chips ── */
+function buildEventSelect() {
+  if (!eventSelect) return;
+  eventSelect.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = 'all';
+  allOpt.textContent = '全部場次';
+  eventSelect.appendChild(allOpt);
+
+  const groups = {};
+  tabs.forEach((tab) => {
+    if (tab.dataset.category === 'all') return;
+    const year = tabYear(tab) || '其他';
+    if (!groups[year]) {
+      const group = document.createElement('optgroup');
+      group.label = year;
+      groups[year] = group;
+      eventSelect.appendChild(group);
+    }
+    const opt = document.createElement('option');
+    opt.value = tab.dataset.category;
+    opt.textContent = tab.textContent.trim();
+    groups[year].appendChild(opt);
   });
+}
+
+tabs.forEach((tab) => {
+  tab.addEventListener('click', () => setCategory(tab.dataset.category));
 });
+
+if (eventSelect) {
+  eventSelect.addEventListener('change', () => setCategory(eventSelect.value));
+}
+
+if (yearFilters) {
+  yearFilters.querySelectorAll('.year-chip').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      const year = chip.dataset.year;
+      state.yearFilter = year;
+      yearFilters.querySelectorAll('.year-chip').forEach((c) => {
+        c.classList.toggle('active', c === chip);
+      });
+      applyYearVisibility();
+
+      const currentTab = [...tabs].find((t) => t.dataset.category === state.currentCategory);
+      if (currentTab && currentTab.hidden) {
+        setCategory('all', { fromYear: true });
+        return;
+      }
+      renderGallery(true);
+    });
+  });
+}
+
+buildEventSelect();
 
 /* ── Search ── */
 let searchTimer;
