@@ -180,8 +180,11 @@ a {
   align-items: flex-end;
   gap: 16px 24px;
   max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px 24px 0;
+  margin: 16px auto 0;
+  padding: 16px 20px 18px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 16px;
+  background: rgba(26, 26, 26, 0.9);
 }
 
 .event-select-wrap {
@@ -643,7 +646,7 @@ a {
   .hero-title { font-size: 1.6rem; }
   .tabs { gap: 6px; padding: 12px 16px 0; }
   .tab { padding: 8px 16px; font-size: 0.82rem; }
-  .event-toolbar { padding: 16px 16px 0; gap: 12px; }
+  .event-toolbar { margin: 12px 16px 0; padding: 14px 14px 16px; gap: 12px; }
   .event-select-wrap { min-width: 100%; }
   .gallery-section { padding: 16px 16px 40px; }
   .lightbox-thumbs { display: none; }
